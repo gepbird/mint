@@ -214,19 +214,25 @@ impl Integrate {
                     info!("integration complete");
                     app.last_action = Some(LastAction::success("integration complete".to_string()));
                 }
-                Err(ref e)
-                    if let IntegrationError::ProviderError { source } = e
-                        && let ProviderError::NoProvider { url: _, factory } = source =>
-                {
-                    app.window_provider_parameters =
-                        Some(WindowProviderParameters::new(factory, &app.state));
-                    app.last_action = Some(LastAction::failure("no provider".to_string()));
-                }
-                Err(e) => {
-                    error!("{}", e);
-                    app.problematic_mod_id = e.opt_mod_id();
-                    app.last_action = Some(LastAction::failure(e.to_string()));
-                }
+                Err(ref e) => match e {
+                    IntegrationError::ProviderError { source } => match source {
+                        ProviderError::NoProvider { url: _, factory } => {
+                            app.window_provider_parameters =
+                                Some(WindowProviderParameters::new(factory, &app.state));
+                            app.last_action = Some(LastAction::failure("no provider".to_string()));
+                        }
+                        _ => {
+                            error!("{}", e);
+                            app.problematic_mod_id = e.opt_mod_id();
+                            app.last_action = Some(LastAction::failure(e.to_string()));
+                        }
+                    },
+                    _ => {
+                        error!("{}", e);
+                        app.problematic_mod_id = e.opt_mod_id();
+                        app.last_action = Some(LastAction::failure(e.to_string()));
+                    }
+                },
             }
             app.integrate_rid = None;
         }
@@ -284,16 +290,18 @@ impl UpdateCache {
                         "successfully updated cache".to_string(),
                     ));
                 }
-                Err(ProviderError::NoProvider { url: _, factory }) => {
-                    app.window_provider_parameters =
-                        Some(WindowProviderParameters::new(factory, &app.state));
-                    app.last_action = Some(LastAction::failure("no provider".to_string()));
-                }
-                Err(e) => {
-                    error!("{}", e);
-                    app.problematic_mod_id = e.opt_mod_id();
-                    app.last_action = Some(LastAction::failure(e.to_string()));
-                }
+                Err(ref e) => match e {
+                    ProviderError::NoProvider { url: _, factory } => {
+                        app.window_provider_parameters =
+                            Some(WindowProviderParameters::new(factory, &app.state));
+                        app.last_action = Some(LastAction::failure("no provider".to_string()));
+                    }
+                    _ => {
+                        error!("{}", e);
+                        app.problematic_mod_id = e.opt_mod_id();
+                        app.last_action = Some(LastAction::failure(e.to_string()));
+                    }
+                },
             }
             app.update_rid = None;
         }
@@ -475,19 +483,25 @@ impl LintMods {
                     app.last_action =
                         Some(LastAction::success("lint mod report complete".to_string()));
                 }
-                Err(ref e)
-                    if let IntegrationError::ProviderError { source } = e
-                        && let ProviderError::NoProvider { url: _, factory } = source =>
-                {
-                    app.window_provider_parameters =
-                        Some(WindowProviderParameters::new(factory, &app.state));
-                    app.last_action = Some(LastAction::failure("no provider".to_string()));
-                }
-                Err(e) => {
-                    error!("{}", e);
-                    app.problematic_mod_id = e.opt_mod_id();
-                    app.last_action = Some(LastAction::failure(e.to_string()));
-                }
+                Err(ref e) => match e {
+                    IntegrationError::ProviderError { source } => match source {
+                        ProviderError::NoProvider { url: _, factory } => {
+                            app.window_provider_parameters =
+                                Some(WindowProviderParameters::new(factory, &app.state));
+                            app.last_action = Some(LastAction::failure("no provider".to_string()));
+                        }
+                        _ => {
+                            error!("{}", e);
+                            app.problematic_mod_id = e.opt_mod_id();
+                            app.last_action = Some(LastAction::failure(e.to_string()));
+                        }
+                    },
+                    _ => {
+                        error!("{}", e);
+                        app.problematic_mod_id = e.opt_mod_id();
+                        app.last_action = Some(LastAction::failure(e.to_string()));
+                    }
+                },
             }
             app.integrate_rid = None;
         }

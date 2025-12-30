@@ -1,4 +1,5 @@
-#![feature(if_let_guard)]
+// TODO: enable when stabilized: https://github.com/rust-lang/rust/issues/51114
+//#![feature(if_let_guard)]
 
 pub mod gui;
 pub mod integrate;
@@ -211,13 +212,15 @@ where
     loop {
         match resolve_unordered_and_integrate(&game_path, state, mod_specs, update).await {
             Ok(()) => return Ok(()),
-            Err(ref e)
-                if let IntegrationError::ProviderError { source } = e
-                    && let ProviderError::NoProvider { url, factory } = source =>
-            {
-                init(state, url.clone(), factory)?
+            Err(e) => {
+                if let IntegrationError::ProviderError { source } = &e {
+                    if let ProviderError::NoProvider { url, factory } = source {
+                        init(state, url.clone(), factory)?;
+                        continue;
+                    }
+                }
+                Err(e)?;
             }
-            Err(e) => Err(e)?,
         }
     }
 }
@@ -234,14 +237,17 @@ where
     loop {
         match resolve_ordered(state, mod_specs).await {
             Ok(mod_paths) => return Ok(mod_paths),
-            Err(ref e)
-                if let MintError::IntegrationError { source } = e
-                    && let IntegrationError::ProviderError { source } = source
-                    && let ProviderError::NoProvider { url, factory } = source =>
-            {
-                init(state, url.clone(), factory)?
+            Err(e) => {
+                if let MintError::IntegrationError { source } = &e {
+                    if let IntegrationError::ProviderError { source } = source {
+                        if let ProviderError::NoProvider { url, factory } = source {
+                            init(state, url.clone(), factory)?;
+                            continue;
+                        }
+                    }
+                }
+                Err(e)?;
             }
-            Err(e) => Err(e)?,
         }
     }
 }
